@@ -12,7 +12,7 @@ const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000
+  1000,
 );
 camera.position.set(33, 10, 10);
 
@@ -65,7 +65,7 @@ const agentHeight = 1.0;
 const agentRadius = 0.25;
 const agent = new THREE.Mesh(
   new THREE.CylinderGeometry(agentRadius, agentRadius, agentHeight),
-  new THREE.MeshStandardMaterial({ color: "green" }) // Use MeshStandardMaterial for better lighting response
+  new THREE.MeshStandardMaterial({ color: "green" }), // Use MeshStandardMaterial for better lighting response
 );
 agent.position.y = agentHeight / 2;
 const agentGroup = new THREE.Group();
@@ -78,8 +78,14 @@ const loader = new GLTFLoader();
 const stationModel = "./glb/station-model.glb";
 
 loader.load(stationModel, (gltf) => {
-  scene.add(gltf.scene);
-  logObjectNames();
+  const model = gltf.scene;
+  scene.add(model);
+  let pts = model.children.filter((child) => child.type == "Object3D");
+  pts = pts.map((pt) => ({
+    name: pt.name,
+    position: pt.position,
+  }));
+  console.log(pts);
 });
 
 // INITIALIZE THREE-PATHFINDING
@@ -154,49 +160,6 @@ function move(delta) {
     navpath.shift();
   }
 }
-
-// object name
-
-// Function to log all object names in the scene
-function logObjectNames() {
-  scene.traverse((node) => {
-    if (node.isObject3D) {
-      console.log(`Object Name: ${node}`);
-    }
-  });
-}
-
-// Call this function after loading the model to see all names
-logObjectNames();
-
-// Function to find an object by its name in the scene
-function getObjectByName(name) {
-  // Recursively search through the scene graph
-  let object = null;
-  scene.traverse((node) => {
-    if (node.isObject3D && node.name === name) {
-      object = node;
-    }
-  });
-  return object;
-}
-
-// Example usage
-const objectName = "Track.004"; // Replace with the name of your object
-const object = getObjectByName(objectName);
-
-if (object) {
-  console.log(`Position of ${objectName}:`, object.position);
-} else {
-  console.log(`Object with name ${objectName} not found.`);
-}
-
-function logSceneStructure() {
-  console.log(JSON.stringify(scene, null, 2)); // Log the entire scene as a JSON string
-}
-
-// Call this function to inspect the structure
-logSceneStructure();
 
 // GAMELOOP
 const clock = new THREE.Clock();

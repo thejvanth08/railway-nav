@@ -12,7 +12,7 @@ const camera = new THREE.PerspectiveCamera(
   45,
   window.innerWidth / window.innerHeight,
   0.1,
-  1000,
+  1000
 );
 camera.position.set(33, 10, 10);
 
@@ -65,7 +65,7 @@ const agentHeight = 1.0;
 const agentRadius = 0.25;
 const agent = new THREE.Mesh(
   new THREE.CylinderGeometry(agentRadius, agentRadius, agentHeight),
-  new THREE.MeshStandardMaterial({ color: "green" }), // Use MeshStandardMaterial for better lighting response
+  new THREE.MeshStandardMaterial({ color: "green" }) // Use MeshStandardMaterial for better lighting response
 );
 agent.position.y = agentHeight / 2;
 const agentGroup = new THREE.Group();
@@ -79,6 +79,7 @@ const stationModel = "./glb/station-model.glb";
 
 loader.load(stationModel, (gltf) => {
   scene.add(gltf.scene);
+  logObjectNames();
 });
 
 // INITIALIZE THREE-PATHFINDING
@@ -102,11 +103,6 @@ loader.load(stationNavMesh, (gltf) => {
     ) {
       navmesh = node.children[0];
       pathfinding.setZoneData(ZONE, Pathfinding.createZone(navmesh.geometry));
-      scene.add(navmesh); // Ensure it's added to the scene
-      navmesh.material = new THREE.MeshBasicMaterial({
-        color: 0x0000ff, // Set a distinct color like blue
-        wireframe: true, // Wireframe mode helps visualize the navmesh better
-      });
     }
   });
 });
@@ -117,6 +113,7 @@ const clickMouse = new THREE.Vector2(); // create once
 
 function intersect(pos) {
   raycaster.setFromCamera(pos, camera);
+
   return raycaster.intersectObjects(scene.children);
 }
 window.addEventListener("click", (event) => {
@@ -158,38 +155,48 @@ function move(delta) {
   }
 }
 
+// object name
 
-// Create objects with names
-const box = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-);
-box.name = "boxObject"; // Assign a unique name
-
-const sphere = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
-);
-sphere.name = "sphereObject";
-
-// Add objects to the scene
-scene.add(box);
-scene.add(sphere);
-
-// Function to get coordinates of an object by name
-function getCoordinatesByName(objectName) {
-  const object = scene.getObjectByName(objectName);
-  if (object) {
-    const { x, y, z } = object.position;
-    window.alert(`${x} ${y} ${z}`);
-    console.log(`${objectName} coordinates: x = ${x}, y = ${y}, z = ${z}`);
-  } else {
-    console.log(`Object with name ${objectName} not found.`);
-  }
+// Function to log all object names in the scene
+function logObjectNames() {
+  scene.traverse((node) => {
+    if (node.isObject3D) {
+      console.log(`Object Name: ${node}`);
+    }
+  });
 }
 
-// Extract coordinates of the selective object by name
-getCoordinatesByName("Point-1.001");
+// Call this function after loading the model to see all names
+logObjectNames();
+
+// Function to find an object by its name in the scene
+function getObjectByName(name) {
+  // Recursively search through the scene graph
+  let object = null;
+  scene.traverse((node) => {
+    if (node.isObject3D && node.name === name) {
+      object = node;
+    }
+  });
+  return object;
+}
+
+// Example usage
+const objectName = "Track.004"; // Replace with the name of your object
+const object = getObjectByName(objectName);
+
+if (object) {
+  console.log(`Position of ${objectName}:`, object.position);
+} else {
+  console.log(`Object with name ${objectName} not found.`);
+}
+
+function logSceneStructure() {
+  console.log(JSON.stringify(scene, null, 2)); // Log the entire scene as a JSON string
+}
+
+// Call this function to inspect the structure
+logSceneStructure();
 
 // GAMELOOP
 const clock = new THREE.Clock();

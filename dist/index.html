@@ -30,6 +30,7 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s ease;
       }
+
       #hamburger.open {
         display: none;
       }
@@ -37,7 +38,6 @@
       #hamburger:hover {
         transform: scale(1.1);
       }
-
       #sidebar {
         position: absolute;
         top: 0;
@@ -101,9 +101,10 @@
       <label for="startDropdown">Start Point:</label>
       <select id="startDropdown">
         <option value="">Select Start Point</option>
-        <option value="Point-1001">Platform-I</option>
-        <option value="Point-2001">Platform-II</option>
-        <option value="Point-3001">Ticket Counter</option>
+        <option value="platform-1001">Platform-I</option>
+        <option value="platform-2001">Platform-II</option>
+        <option value="ticket-counter-1001">Ticket Counter</option>
+        <option value="entrance_001">Entry</option>
         <option value="Exit">Exit</option>
         <option value="Restroom">Restroom</option>
       </select>
@@ -111,9 +112,10 @@
       <label for="destinationDropdown">Destination:</label>
       <select id="destinationDropdown">
         <option value="">Select Destination Point</option>
-        <option value="Point-1001">Platform-I</option>
-        <option value="Point-2001">Platform-II</option>
-        <option value="Point-3001">Ticket Counter</option>
+        <option value="platform-1001">Platform-I</option>
+        <option value="platform-2001">Platform-II</option>
+        <option value="ticket-counter-1001">Ticket Counter</option>
+        <option value="entrance_001">Entry</option>
         <option value="Exit">Exit</option>
         <option value="Restroom">Restroom</option>
       </select>
@@ -127,10 +129,12 @@
 
       hamburger.addEventListener("click", () => {
         sidebar.classList.toggle("open");
+        hamburger.classList.toggle("open");
       });
 
       closeButton.addEventListener("click", () => {
         sidebar.classList.remove("open");
+        hamburger.classList.remove("open");
       });
     </script>
     <script src="index.js"></script>

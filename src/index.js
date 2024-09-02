@@ -14,7 +14,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-camera.position.set(33, 10, 10);
+camera.position.set(0, 50, 0); // Top view position
+camera.lookAt(0, 0, 0); // Look at the center of the scene
 
 // RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -93,12 +94,16 @@ loader.load(stationModel, (gltf) => {
   const model = gltf.scene;
   scene.add(model);
 
-  // Traverse model to find objects and store their positions
-  model.traverse((child) => {
-    if (child.isObject3D) {
-      objectsMap[child.name] = child.position.clone();
-    }
+  let pts = model.children.filter((pt) => pt.type === "Object3D");
+  pts = pts.map((pt) => ({
+    name: pt.name,
+    position: pt.position.clone(),
+  }));
+  pts.forEach((pt) => {
+    objectsMap[pt.name] = pt.position;
   });
+  console.log(objectsMap);
+  // Traverse model to find objects and store their positions
 });
 
 // LOAD NAVMESH
@@ -129,9 +134,24 @@ function move(delta) {
     // If distance to the next point is significant, move closer
     const moveStep = distance.normalize().multiplyScalar(SPEED * delta);
     agentGroup.position.add(moveStep);
+
+    // Calculate camera position
+    const cameraOffset = new THREE.Vector3(0, 2, -5); // Offset behind and above the agent
+    camera.position.copy(agentGroup.position).add(cameraOffset);
+
+    // Ensure the camera looks in the same direction as the agent's movement
+    const movementDirection = distance.normalize();
+    const lookAtPosition = agentGroup.position.clone().add(movementDirection);
+    camera.lookAt(lookAtPosition);
   } else {
     // Reached current target, proceed to the next one
     navpath.shift();
+
+    // Check if we have reached the final destination
+    if (navpath.length === 0) {
+      speak("Destination is reached!"); // Trigger voice alert
+      alert("Destination is reached!"); // Optional: keep the text alert as well
+    }
   }
 }
 
@@ -139,7 +159,6 @@ function move(delta) {
 const clock = new THREE.Clock();
 function gameLoop() {
   move(clock.getDelta());
-  orbitControls.update();
   renderer.render(scene, camera);
   requestAnimationFrame(gameLoop);
 }
@@ -152,14 +171,17 @@ document.getElementById("setAgentButton").addEventListener("click", () => {
 
   if (!startPointName || !destinationName) {
     alert("Please select both start and destination points.");
+    speak("Please select both start and destination points.");
     return;
   }
 
   const start = objectsMap[startPointName];
   const destination = objectsMap[destinationName];
+  speak(`navigating from ${startPointName} to ${destinationName}`);
 
   if (!start || !destination) {
     alert("Invalid points selected.");
+    speak("Invalid points selected.");
     return;
   }
 
@@ -186,3 +208,12 @@ document.getElementById("setAgentButton").addEventListener("click", () => {
     alert("No path found!");
   }
 });
+
+// VOICE ALERT FUNCTION
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.pitch = 1; // Optional: set pitch
+  utterance.rate = 1; // Optional: set rate
+  utterance.volume = 1; // Optional: set volume
+  window.speechSynthesis.speak(utterance);
+}
